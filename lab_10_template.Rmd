@@ -77,18 +77,31 @@ Use the 'glm' function for fitting *generalized linear models* (the *logit* - lo
 
 $$Log Odds (Survival) = \beta_0 + \beta_1(Age) + \beta_2(Sex)$$
 
-We'll use 'family = binomial' to run binomial logistic regression...otherwise, this looks very similar to other types of regression we've already done. 
+We'll use 'family = binomial' to run binomial logistic regression...otherwise, this looks very similar to other types of regression we've already done.  
+
+**Question:** What effect do age and sex have on survivorship in the Donner party?
 
 a. Read in the DonnerTable.csv file as DonnerTable
 
-```{r donner_data}
-
+```{r donner_data, include = FALSE}
+# read in csv
+DonnerTable <- read_csv("DonnerTable.csv")
 ```
+
+**Important:** When outcome dependent variable is already coded as 0/1, it's easy to define probability of outcome A or B. If you have a binary dependent variable is true/false, you need to figure out how R codes each as 0 or 1. The easiest way to know which is which is to specify on your own (using `r casewhen()`) so that there's no confusion about what you are defining as 0 or 1.  
 
 b. Binomial logistic regression
 
-```{r blr}
+```{r blr, echo = FALSE}
+# use glm() to set up model
+donner_blr <- glm(Outcome ~ Sex + Age, 
+                  # choose the type of model you're constructing
+                  family = "binomial",
+                  # call data that you're using
+                  data = DonnerTable)
 
+summary(donner_blr)
+# looking at intercepts, male survival is lower than female survival AND an increase in age leads to a decrease in the odds of survival
 ```
 
 c. Use the model to answer: What are the log odds of survival for a 5 year-old female? The probability of survival?
@@ -97,21 +110,41 @@ c. Use the model to answer: What are the log odds of survival for a 5 year-old f
 
 # 1. Create a data frame with variables Sex and Age, containing data "Female" and 5, respectively: 
 
+# create a new data frame for a female of age 5
+# data has to have the exact same variable names as the model you're using in order for things to match up
+f_5 <- data.frame(Sex = "Female", Age = 5)
 
 
 # 2. Find the log odds of survival for the new data (5 year old female) using predict() function with type = "link":
 
+# give predict() model name
+f_5_logodds <- predict(donner_blr, 
+                       # new data frame
+                       newdata = f_5,
+                       # calculate log odds
+                       type = "link")
+f_5_logodds
 
 
 # 3. Exponentiate the log odds to find ODDS of survival for a 5 year old female:
 
-
+# figure out actual odds of survival for 5 year old female
+f_5_odds <- exp(f_5_logodds)
+f_5_odds
+# odds are 4.23:1, odds of survival for 5 year old female ~80% BUT you can do this by writing in type = "response"
 
 # Ask: Could we manually find the probability of survival for a 5-year old female? recall: p/(1-p) = ODDS
 
+
+
 # 4. Actually, let's just use type = "response" in the predict function, which converts to a probability for us:
 
-
+f_5_prob <- predict(donner_blr, 
+                       # new data frame
+                       newdata = f_5,
+                       # calculate probability of survival
+                       type = "response")
+f_5_prob
 
 ```
 
