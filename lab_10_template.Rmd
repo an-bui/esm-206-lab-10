@@ -222,30 +222,54 @@ donner_graph
 # PART 3. Solar irradiation at the 3 locations in 2010 (pull in all together, do some lubridate stuff, etc.)
 
 a. Read in multiple solar irradiation files (for SB (CA), Hilo (HI), and Fairbanks (AK)):
-```{r solar_data}
+```{r solar_data, include = FALSE}
+# read in all files as one data frame
+# first, make a list of file names for anything that starts with solar_irradiation, put in a wildcard
+si_full <- list.files(pattern = "solar_irradiation_*") %>% 
+  # read in files then map to put in single data frame
+  map_df(~read_csv(.)) %>% 
+  # cleans up your column names to snake case!!!!
+  clean_names()
 
-
-
-
+# resulting data frame contains all data from 3 files in one data frame
+# original files had a column to specify sites so that when the data are merged, you know where it came from
 ```
 
 b. Wrangle the data
 ```{r wrangle_solar}
-
-
-
+solar_tidy <- si_full %>% 
+  # rename columns to make it easier to call columns
+  rename(sol_rad = etr_wh_m_2,
+         date = yyyy_mm_dd,
+         time = hh_mm_lst) %>% 
+  # remove NA values from time
+  filter(time != "NA") %>% 
+  # reorder things so that they aren't set alphabetically with fct_relevel() in forcats package
+  mutate(site = fct_relevel(site, "Hawaii", "Santa Barbara", "Alaska"))
 ```
 
 c. Use lubridate() functions to convert to times/dates
 ```{r date_time}
+# recognize column solar_tidy$date as a date, and reorder data as month-day-year
+solar_tidy$date <- mdy(solar_tidy$date)
 
-
+# recognize column solar_tidy$time as time, reorder data as hours-minutes-seconds
+solar_tidy$time <- hms(solar_tidy$time)
 ```
 
 d. Make an awesome figure of solar irradiation (heat/tile map)
 ```{r solar_graph}
+solar_gg <- ggplot(solar_tidy, aes(x = date, y = time)) +
+  # geom_tile: color depends on value that you give it
+  geom_tile(aes(fill = sol_rad)) +
+  # scale_fill_gradientn lets you choose as many colors as you want to be in your gradient scheme
+  scale_fill_gradientn(colors = c("royalblue2", "mediumorchid1", "orange", "yellow")) +
+  # specify that the y axis is supposed to be time
+  scale_y_time() +
+  # wrap by site, force outcomes into their own rows
+  facet_wrap(~ site, ncol = 1)
 
-
+solar_gg
 
 ```
 
