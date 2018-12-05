@@ -1,7 +1,7 @@
 ---
 title: "ESM 206 Lab 10"
-author: "YOUR NAME HERE"
-date: "December 3, 2018"
+author: "An Bui"
+date: "05 December 2018"
 output: html_document
 ---
 
@@ -18,7 +18,7 @@ Lab 10 Objectives:
 - Aquaculture with gganimate
 
 # PART 0. Load libraries
-```{r packages}
+```{r packages, include = FALSE}
 
 library(tidyverse) # The tidyverse!
 library(corrplot) # For correlation matrices
@@ -32,16 +32,43 @@ library(ggimage) # For updating graph components with images
 
 # PART 1. Correlation matrix (World Bank world environmental factors data)
 
-Compiled World Bank data, accessed from: https://www.kaggle.com/zanderventer/environmental-variables-for-world-countries#World_countries_env_vars.csv
+Compiled World Bank data, accessed from: https://www.kaggle.com/zanderventer/environmental-variables-for-world-countries#World_countries_env_vars.csv  
+
+Create a correlation matrix to explore colinearity
 
 - Read in the "world_env_vars.csv file" as env_var
 - Find correlations between all variables, columns 2:28
 - Plot the correlation matrix (corrplot)
 
-```{r env_corr}
+```{r env_corr, echo = FALSE}
+# read in csv and remove NA so that you can use cor()
+# do complete case deletion: all rows with NA values are deleted
+env_var <- read_csv("world_env_vars.csv") %>% 
+  na.omit
 
+# calculate Pearson's r for correlations
+# find correlations between all columns in env_var except column 1 (country name)
+cor_df <- cor(env_var[2:28])
 
+# use corrplot() in corrplot package to make correlation matrix
+corrplot(cor_df)
+# size of circles and transparency indicate strength of correlation, color indicates directionality
 
+# update corrplot to be easier to use
+corrplot(cor_df,
+         # only upper correlation matrix
+         type = "upper",
+         # ellipse direction indicates direction of correlation
+         method = "ellipse",
+         # make text black
+         tl.col = "black",
+         # space out text
+         tl.cex = 0.5)
+
+# more narrow = more strongly correlated
+# right = negative correlation, left = positive correlation
+# red = negative correlation, blue = positive correlation
+# light = weak correlation, dark = strong correlation
 ```
 
 # PART 2. Binary Logistic Regression (Donner Party Data)
