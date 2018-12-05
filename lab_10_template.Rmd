@@ -145,7 +145,6 @@ f_5_prob <- predict(donner_blr,
                        # calculate probability of survival
                        type = "response")
 f_5_prob
-
 ```
 
 d. What is the probability of survival for a 25 year-old male? 
@@ -158,7 +157,6 @@ m_25 <- data.frame(Sex = "Male", Age = 25) # Make a new data frame
 
 m_25_prob <- predict(donner_blr, newdata = m_25, type = "response") # Find probability of survival
 m_25_prob
-
 ```
 
 e. Create new sequences of data so that we can graph probabilities for the entire spectrum of ages, designated by sex.
@@ -176,7 +174,6 @@ mf_101 <- c(f_101, m_101) # Combine them into a single vector
 
 donner_newdata <- data.frame(seq_age, mf_101) # MUST make column names match variables in the model!
 colnames(donner_newdata) <- c("Age","Sex")
-
 ```
 
 f. Now that we have new data to put into our model to have it make predictions, let's go ahead and actually find the predicted probabilities for each Age/Sex combination.
@@ -270,7 +267,6 @@ solar_gg <- ggplot(solar_tidy, aes(x = date, y = time)) +
   facet_wrap(~ site, ncol = 1)
 
 solar_gg
-
 ```
 
 
@@ -278,22 +274,52 @@ solar_gg
 
 a. Get the data, and do some wrangling:
 ```{r aqua_data}
+aq_df <- read_csv("aq_wb.csv")
+# data are in wide format (data for all different years are in one column), not tidy format
 
-
+aq_tidy <- aq_df %>% 
+  filter(country == "Brazil" |
+           country == "Chile" |
+           country == "Ecuador" |
+           country == "United States") %>% 
+  
+  # use gather() in tidyr to create two new columns called year and aq_prod
+  # takes column headers that you're gathering to put into the first column called "year"
+  gather(year, 
+          # then takes all those values and puts into the other column called "aq_prod"
+         aq_prod, 
+          # use back ticks so that R recognizes that those are column names, not numbers
+         `1960`:`2016`) %>% 
+  
+  # only years after 1990
+  filter(year >= 1990) %>%
+  mutate(aq_mil = aq_prod/1000000) %>% 
+  select(country, year, aq_mil)
 ```
 
 
 b. Read in the fish.png as 'fish'
 
 ```{r fish_image}
-
-
+fish <- "fish.png"
 ```
 
 c. Make a graph...with gganimate!
 ```{r gganimate_fish}
+# have to coerce year to numeric because it used to be column names so R would think it's full of characters
+aq_plot <- ggplot(aq_tidy, aes(x = as.numeric(year), y = aq_mil), group = country) +
+  # in the line graph, want to assign color to country
+  geom_line(aes(color = country)) +
+  # add a picture of a fish at each point
+  geom_image(aes(image = fish)) +
+  # label each line for country, and make the color of the label different by country
+  geom_text(aes(label = country, color = country),
+            # change position of the label and make label bigger
+            position = position_nudge(y = 0.04, x = 1), size = 5) +
+  # in gganimate
+  transition_reveal(country, as.numeric(year))
 
-
+aq_plot
 ```
 
 ##END LAB
