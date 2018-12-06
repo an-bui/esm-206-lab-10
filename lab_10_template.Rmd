@@ -320,6 +320,9 @@ aq_plot <- ggplot(aq_tidy, aes(x = as.numeric(year), y = aq_mil), group = countr
   transition_reveal(country, as.numeric(year))
 
 aq_plot
+
+# can export as gif using gifski_renderer in gifski package
+animate(aq_plot, nframes = 24, renderer = gifski_renderer("aq_animate.gif"))
 ```
 
 ##END LAB
